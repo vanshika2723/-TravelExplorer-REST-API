@@ -5,6 +5,8 @@ const dotenv = require("dotenv");
 
 const destinationRoutes =
     require("./routes/destinationRoutes");
+const authRoutes =
+    require("./routes/authRoutes");
 
 dotenv.config();
 
@@ -20,6 +22,10 @@ app.use(
     destinationRoutes
 );
 
+app.use(
+    "/api/auth",
+    require("./routes/authRoutes")
+);
 
 // Test route
 app.get("/", (req, res) => {
