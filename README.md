@@ -1,22 +1,35 @@
-# 🌍 TravelExplorer REST API
+# 🌍 TravelExplorer API
 
-TravelExplorer REST API is a backend application built using **Node.js, Express.js, MongoDB and Mongoose**.
+A RESTful backend API for the TravelExplorer application built using **Node.js, Express.js, MongoDB, Mongoose, JWT and bcryptjs**.
 
-The API provides complete CRUD operations for managing travel destinations.
+The project provides destination management APIs along with a secure authentication system.
+
+---
 
 ## 🚀 Features
 
+### Destination Management
+
 * Create destinations
 * Get all destinations
-* Get a single destination
-* Update destinations
-* Delete destinations
+* Get destination by ID
+* Update destination
+* Delete destination
 * MongoDB database integration
-* RESTful API architecture
-* JSON request and response handling
-* CORS support
-* Environment variable configuration
-* Request validation through Mongoose
+
+### Authentication
+
+* User registration
+* User login
+* Password validation
+* Password hashing using bcrypt
+* JWT-based authentication
+* Protected profile route
+* Authentication error handling
+* Duplicate email validation
+* Invalid/expired token handling
+
+---
 
 ## 🛠️ Technologies Used
 
@@ -24,11 +37,16 @@ The API provides complete CRUD operations for managing travel destinations.
 * Express.js
 * MongoDB
 * Mongoose
-* JavaScript
-* REST API
+* JWT
+* bcryptjs
+* CORS
+* dotenv
 * Postman
+* Git & GitHub
 
-## 📂 Project Structure
+---
+
+## 📁 Project Structure
 
 ```text
 TravelExplorer-API/
@@ -36,12 +54,18 @@ TravelExplorer-API/
 ├── config/
 │
 ├── controllers/
+│   ├── authController.js
 │   └── destinationController.js
 │
+├── middleware/
+│   └── authMiddleware.js
+│
 ├── models/
+│   ├── User.js
 │   └── Destination.js
 │
 ├── routes/
+│   ├── authRoutes.js
 │   └── destinationRoutes.js
 │
 ├── .env
@@ -52,7 +76,9 @@ TravelExplorer-API/
 └── README.md
 ```
 
-## ⚙️ Installation
+---
+
+# ⚙️ Installation
 
 Clone the repository:
 
@@ -60,7 +86,7 @@ Clone the repository:
 git clone YOUR_GITHUB_REPOSITORY_URL
 ```
 
-Move into the project:
+Navigate to the project:
 
 ```bash
 cd TravelExplorer-API
@@ -72,26 +98,31 @@ Install dependencies:
 npm install
 ```
 
-## 🔐 Environment Variables
+---
 
-Create a `.env` file in the root directory:
+# 🔐 Environment Variables
+
+Create a `.env` file in the project root:
 
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_super_secret_key
 ```
 
-Never commit the `.env` file to GitHub.
+Do not upload `.env` to GitHub.
 
-## ▶️ Run the Server
+---
 
-Development mode:
+# ▶️ Run the Project
+
+For development:
 
 ```bash
 npm run dev
 ```
 
-Production/start mode:
+For production:
 
 ```bash
 npm start
@@ -103,228 +134,361 @@ Server:
 http://localhost:5000
 ```
 
-## 🔗 API Endpoints
+---
 
-Base URL:
+# 🔑 Authentication APIs
 
-```text
-http://localhost:5000/api/destinations
-```
+## 1. Register User
 
-### 1. Create Destination
-
-**POST**
+### Endpoint
 
 ```text
-/api/destinations
+POST /api/auth/register
 ```
 
-Example request:
+### Request Body
 
 ```json
 {
-  "name": "Royal Jaipur",
+  "name": "Vanshika Khandelwal",
+  "email": "vanshika@example.com",
+  "password": "Password123"
+}
+```
+
+### Successful Response
+
+```json
+{
+  "success": true,
+  "message": "Registration successful",
+  "token": "JWT_TOKEN",
+  "user": {
+    "id": "USER_ID",
+    "name": "Vanshika Khandelwal",
+    "email": "vanshika@example.com"
+  }
+}
+```
+
+### Validation
+
+* Name is required
+* Email is required
+* Password is required
+* Password must contain at least 6 characters
+* Duplicate email addresses are rejected
+
+---
+
+# 2. Login User
+
+### Endpoint
+
+```text
+POST /api/auth/login
+```
+
+### Request Body
+
+```json
+{
+  "email": "vanshika@example.com",
+  "password": "Password123"
+}
+```
+
+### Successful Response
+
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "JWT_TOKEN",
+  "user": {
+    "id": "USER_ID",
+    "name": "Vanshika Khandelwal",
+    "email": "vanshika@example.com"
+  }
+}
+```
+
+Incorrect credentials return:
+
+```json
+{
+  "success": false,
+  "message": "Invalid email or password"
+}
+```
+
+---
+
+# 3. Get My Profile 🔒
+
+This is a protected route and requires a valid JWT token.
+
+### Endpoint
+
+```text
+GET /api/auth/profile
+```
+
+### Request Header
+
+```text
+Authorization: Bearer YOUR_JWT_TOKEN
+```
+
+### Successful Response
+
+```json
+{
+  "success": true,
+  "message": "Profile fetched successfully",
+  "user": {
+    "_id": "USER_ID",
+    "name": "Vanshika Khandelwal",
+    "email": "vanshika@example.com"
+  }
+}
+```
+
+Without a token:
+
+```json
+{
+  "success": false,
+  "message": "Authentication required. Please provide a valid token."
+}
+```
+
+Invalid or expired tokens return:
+
+```json
+{
+  "success": false,
+  "message": "Invalid or expired authentication token."
+}
+```
+
+---
+
+# 🌍 Destination APIs
+
+## Create Destination
+
+```text
+POST /api/destinations
+```
+
+Example:
+
+```json
+{
+  "name": "Jaipur",
   "country": "India",
   "category": "Culture",
-  "description": "Explore Jaipur's royal palaces, historic forts and traditional culture.",
-  "price": 19999,
-  "duration": "5 Days / 4 Nights",
-  "rating": 4.9,
+  "description": "Explore the historic Pink City.",
+  "price": 18999,
+  "duration": "4 Days / 3 Nights",
+  "rating": 4.8,
   "image": "https://example.com/jaipur.jpg"
 }
 ```
 
-Successful response:
+---
 
-```json
-{
-  "success": true,
-  "message": "Destination created successfully",
-  "data": {}
-}
-```
-
-### 2. Get All Destinations
-
-**GET**
+## Get All Destinations
 
 ```text
-/api/destinations
+GET /api/destinations
+```
+
+---
+
+## Get Destination By ID
+
+```text
+GET /api/destinations/:id
 ```
 
 Example:
 
 ```text
-GET http://localhost:5000/api/destinations
+GET /api/destinations/DESTINATION_ID
 ```
 
-Response:
+---
 
-```json
-{
-  "success": true,
-  "count": 1,
-  "data": []
-}
-```
-
-### 3. Get Destination by ID
-
-**GET**
+## Update Destination
 
 ```text
-/api/destinations/:id
+PUT /api/destinations/:id
 ```
 
 Example:
 
-```text
-GET http://localhost:5000/api/destinations/DESTINATION_ID
-```
-
-Response:
-
 ```json
 {
-  "success": true,
-  "data": {}
-}
-```
-
-### 4. Update Destination
-
-**PUT**
-
-```text
-/api/destinations/:id
-```
-
-Example:
-
-```text
-PUT http://localhost:5000/api/destinations/DESTINATION_ID
-```
-
-Request body:
-
-```json
-{
-  "name": "Royal Jaipur Updated",
-  "country": "India",
-  "category": "Culture",
-  "description": "Explore Jaipur's royal heritage.",
   "price": 19999,
-  "duration": "5 Days / 4 Nights",
-  "rating": 4.9,
-  "image": "https://example.com/jaipur.jpg"
+  "rating": 4.9
 }
 ```
 
-Successful response:
+---
 
-```json
-{
-  "success": true,
-  "message": "Destination updated successfully",
-  "data": {}
-}
-```
-
-### 5. Delete Destination
-
-**DELETE**
+## Delete Destination
 
 ```text
-/api/destinations/:id
+DELETE /api/destinations/:id
 ```
 
-Example:
+---
+
+# 🧪 API Testing
+
+All APIs were tested using **Postman**.
+
+| API                    | Method | Status |
+| ---------------------- | ------ | ------ |
+| Register User          | POST   | ✅      |
+| Login User             | POST   | ✅      |
+| Get Profile            | GET    | ✅      |
+| Wrong Password         | POST   | ✅      |
+| Duplicate Registration | POST   | ✅      |
+| Invalid Token          | GET    | ✅      |
+| Create Destination     | POST   | ✅      |
+| Get Destinations       | GET    | ✅      |
+| Get Destination        | GET    | ✅      |
+| Update Destination     | PUT    | ✅      |
+| Delete Destination     | DELETE | ✅      |
+
+---
+
+# 🔒 Security Implementation
+
+### Password Hashing
+
+Passwords are hashed using:
 
 ```text
-DELETE http://localhost:5000/api/destinations/DESTINATION_ID
+bcryptjs
 ```
 
-Successful response:
+Plain-text passwords are never stored in MongoDB.
 
-```json
-{
-  "success": true,
-  "message": "Destination deleted successfully"
-}
-```
+### JWT Authentication
 
-## 🧪 API Testing
-
-All CRUD endpoints were tested using **Postman**.
-
-| Operation | Method | Endpoint                | Status |
-| --------- | ------ | ----------------------- | ------ |
-| Create    | POST   | `/api/destinations`     | ✅ 201  |
-| Get All   | GET    | `/api/destinations`     | ✅ 200  |
-| Get One   | GET    | `/api/destinations/:id` | ✅ 200  |
-| Update    | PUT    | `/api/destinations/:id` | ✅ 200  |
-| Delete    | DELETE | `/api/destinations/:id` | ✅ 200  |
-
-## 🗄️ Database
-
-Database:
+Authentication tokens are generated using:
 
 ```text
-MongoDB
+jsonwebtoken
 ```
 
-ODM:
+Tokens expire after:
 
 ```text
-Mongoose
+7 days
 ```
 
-Collection:
+### Protected Routes
+
+The authentication middleware:
 
 ```text
+middleware/authMiddleware.js
+```
+
+checks the JWT token before allowing access to protected routes.
+
+### Environment Variables
+
+Sensitive configuration such as:
+
+```text
+MONGO_URI
+JWT_SECRET
+```
+
+is stored inside `.env`.
+
+---
+
+# 🗄️ Database
+
+MongoDB is used as the database and Mongoose is used for schema and database operations.
+
+Main collections:
+
+```text
+users
 destinations
 ```
 
-Each destination contains:
+---
 
-* name
-* country
-* category
-* description
-* price
-* duration
-* rating
-* image
-* createdAt
-* updatedAt
+# 📌 Task 3 Requirements
 
-## 🔒 Security
+### 1. User Registration & Login
 
-* MongoDB credentials are stored in `.env`.
-* `.env` is excluded using `.gitignore`.
-* `node_modules` is excluded from Git.
-* Input validation is handled by Mongoose schema rules.
+✅ Implemented
 
-## 📌 Task Requirements
+### 2. Password Validation & Secure Authentication
 
-* [x] Node.js backend
-* [x] Express.js
-* [x] REST APIs
-* [x] Create operation
-* [x] Read operation
-* [x] Update operation
-* [x] Delete operation
-* [x] MongoDB integration
-* [x] API endpoint testing
-* [x] API documentation
-* [x] GitHub-ready project
+✅ Implemented
 
-## 👩‍💻 Author
+### 3. Protected Routes
+
+✅ Implemented
+
+### 4. Success & Error Messages
+
+✅ Implemented
+
+---
+
+# 🎯 Learning Outcomes
+
+Through this project, I learned:
+
+* REST API development
+* Express.js routing
+* MongoDB database integration
+* Mongoose schemas
+* CRUD operations
+* Password hashing
+* JWT authentication
+* Middleware implementation
+* Protected routes
+* API validation
+* HTTP status codes
+* Postman API testing
+* Environment variable management
+* Backend error handling
+
+---
+
+# 🔮 Future Improvements
+
+* Refresh token authentication
+* Email verification
+* Forgot/reset password
+* Role-based authorization
+* Admin dashboard
+* User booking system
+* Destination search and pagination
+* API rate limiting
+* Deployment with MongoDB Atlas and Render
+
+---
+
+# 👩‍💻 Author
 
 **Vanshika Khandelwal**
 
-B.Tech – Computer Science Engineering
+B.Tech Computer Science Engineering
 
-## 📄 License
+GitHub: `github.com/vanshika2723`
 
-This project is created for educational and internship purposes.
+LinkedIn: `linkedin.com/in/vanshika-khandelwal27`
